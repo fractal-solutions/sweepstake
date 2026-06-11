@@ -25,6 +25,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        /* Fix for scrollbars */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
@@ -41,7 +42,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-100 antialiased p-4 md:p-6 flex flex-col justify-center">
+<body class="min-h-screen text-slate-100 antialiased p-4 md:p-6 selection:bg-fuchsia-500/30 flex flex-col justify-center">
 
     <div class="max-w-7xl mx-auto w-full space-y-6">
         
@@ -169,7 +170,7 @@
             </section>
 
             <section class="lg:col-span-7">
-                <div class="glass-panel rounded-2xl p-5 shadow-xl h-[470px] flex flex-col justify-between relative overflow-hidden">
+                <div class="glass-panel rounded-2xl p-5 shadow-xl h-[440px] flex flex-col justify-between relative overflow-hidden">
                     
                     <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
                         <div>
@@ -179,23 +180,12 @@
                         </div>
                         
                         <div id="exportActionGroup" class="flex items-center gap-2 opacity-30 pointer-events-none transition-all">
-                            <button id="sendWebhookBtn" onclick="sendWebhookPayload()" class="bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-300 text-xs font-semibold px-2.5 py-1.5 rounded-xl flex items-center gap-1 transition-all cursor-pointer">
-                                <span id="sendWebhookBtnText"><i class="fa-solid fa-paper-plane"></i> Send Results</span>
-                            </button>
                             <button onclick="exportToExcel()" class="bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 text-xs font-semibold px-2.5 py-1.5 rounded-xl flex items-center gap-1 transition-all cursor-pointer">
                                 <i class="fa-solid fa-file-excel"></i> Excel
                             </button>
                             <button id="pdfBtn" onclick="exportToPDF()" class="bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/30 text-rose-400 text-xs font-semibold px-2.5 py-1.5 rounded-xl flex items-center gap-1 transition-all cursor-pointer">
                                 <span id="pdfBtnText"><i class="fa-solid fa-file-pdf"></i> PDF</span>
                             </button>
-                        </div>
-                    </div>
-
-                    <div id="webhookSettingsPane" class="mb-3 p-2 bg-black/30 border border-white/5 rounded-xl hidden flex flex-col gap-1.5">
-                        <label class="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider pl-1">Target End-Point URL Configuration</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="webhookUrlInput" class="flex-1 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-300 focus:outline-none focus:border-indigo-500">
-                            <button onclick="toggleWebhookPane(false)" class="bg-white/10 hover:bg-white/15 px-2.5 rounded-lg text-xs transition-colors cursor-pointer"><i class="fa-solid fa-check"></i> Save</button>
                         </div>
                     </div>
 
@@ -222,11 +212,9 @@
                         </div>
                     </div>
 
-                    <div class="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400">
-                        <span class="italic"><i class="fa-solid fa-shield-halved text-sky-400 mr-1"></i>Cryptographically random secure draw.</span>
-                        <button onclick="toggleWebhookPane(true)" class="hover:text-indigo-300 font-medium tracking-wide underline flex items-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-link"></i> Webhook Endpoint Setup
-                        </button>
+                    <div class="mt-3 pt-2 border-t border-white/5 flex items-center gap-2 text-[10px] text-slate-400 italic">
+                        <i class="fa-solid fa-shield-halved text-sky-400"></i>
+                        <span>Fully transparent algorithmic draw module. Cryptographically random.</span>
                     </div>
 
                 </div>
@@ -256,7 +244,8 @@
                 </button>
             </div>
 
-            <div id="teamChipsContainer" class="flex flex-wrap gap-1.5 overflow-y-auto p-3 bg-black/30 rounded-xl border border-white/5 flex-1 custom-scrollbar min-h-[150px]"></div>
+            <div id="teamChipsContainer" class="flex flex-wrap gap-1.5 overflow-y-auto p-3 bg-black/30 rounded-xl border border-white/5 flex-1 custom-scrollbar min-h-[150px]">
+                </div>
 
             <div class="flex justify-between items-center mt-4 pt-3 border-t border-white/10 text-xs">
                 <div class="flex items-center gap-2 text-slate-400">
@@ -276,13 +265,18 @@
         </div>
     </div>
 
-    <div id="iframeSandboxContainer" style="display:none;"></div>
+    <div id="cleanPdfTarget" style="display: none;"></div>
 
     <script>
-        // ==========================================
-        // HARDCODED WEBHOOK URL DEFINITION CONFIG
-        // ==========================================
-        let DEFAULT_WEBHOOK_URL = "https://automation.janibeauty.co.ke/webhook/46c0b126-5342-4a68-8f76-c6485930ff1d";
+        // Default Dataset Arrays
+        // const DEFAULT_TEAMS = [
+        //     "Argentina", "France", "Brazil", "England", "Belgium", "Croatia", "Netherlands", "Portugal",
+        //     "Spain", "Italy", "Morocco", "Switzerland", "USA", "Germany", "Mexico", "Uruguay",
+        //     "Colombia", "Senegal", "Denmark", "Japan", "Peru", "Iran", "Sweden", "Ukraine",
+        //     "Austria", "South Korea", "Tunisia", "Chile", "Algeria", "Poland", "Ecuador", "Serbia",
+        //     "Egypt", "Australia", "Wales", "Canada", "Scotland", "Ghana", "Czechia", "Turkey",
+        //     "Norway", "Cameroon", "Ivory Coast", "Nigeria", "Saudi Arabia", "South Africa", "New Zealand", "Jamaica"
+        // ];
 
         const DEFAULT_TEAMS = [
             "Mexico", "South Africa", "South Korea", "Czechia", "Canada", "Bosnia and Herzegovina", "Qatar", "Switzerland",
@@ -298,20 +292,10 @@
         let historicalDrawResults = [];
 
         window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('webhookUrlInput').value = DEFAULT_WEBHOOK_URL;
             renderTeamPoolUI();
         });
 
-        function toggleWebhookPane(show) {
-            const pane = document.getElementById('webhookSettingsPane');
-            if(show) {
-                pane.classList.remove('hidden');
-            } else {
-                pane.classList.add('hidden');
-                DEFAULT_WEBHOOK_URL = document.getElementById('webhookUrlInput').value.trim();
-            }
-        }
-
+        // Toggle Modal Interface Smooth Animation System
         function toggleTeamModal(show) {
             const modal = document.getElementById('teamModal');
             const card = document.getElementById('modalCard');
@@ -324,17 +308,20 @@
             } else {
                 modal.classList.add('opacity-0');
                 card.classList.add('scale-95');
-                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
             }
         }
 
+        // Render functions inside the modal layout view
         function renderTeamPoolUI() {
             document.getElementById('teamPoolCountBadge').innerText = customTeamPool.length;
             document.getElementById('modalTeamPoolCount').innerText = `${customTeamPool.length} Teams`;
             
             const container = document.getElementById('teamChipsContainer');
             container.innerHTML = customTeamPool.map((team, idx) => `
-                <div class="inline-flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-[11px] text-slate-300">
+                <div class="inline-flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-[11px] text-slate-300 hover:border-purple-500/30 transition-colors">
                     <span contenteditable="true" onblur="editTeamName(${idx}, this.innerText)" class="focus:outline-none focus:bg-white/10 px-0.5 rounded cursor-edit font-medium">${team}</span>
                     <button onclick="deleteTeam(${idx})" class="text-[10px] text-slate-500 hover:text-rose-400 ml-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -344,7 +331,11 @@
 
         function editTeamName(index, newName) {
             const cleanName = newName.replace(/[\n\r]/g, "").trim();
-            if(cleanName) { customTeamPool[index] = cleanName; } else { renderTeamPoolUI(); }
+            if(cleanName) {
+                customTeamPool[index] = cleanName;
+            } else {
+                renderTeamPoolUI();
+            }
         }
 
         function deleteTeam(index) {
@@ -369,6 +360,7 @@
             renderTeamPoolUI();
         }
 
+        // Input Management System
         function switchInputMode(mode) {
             const tabSingle = document.getElementById('tabSingle');
             const tabBulk = document.getElementById('tabBulk');
@@ -396,7 +388,9 @@
                     participants.push(name);
                     input.value = '';
                     updateMetricsAndUI();
-                } else { alert("This name is already registered."); }
+                } else {
+                    alert("This name is already registered.");
+                }
             }
         }
 
@@ -405,7 +399,9 @@
             const lines = textarea.value.split('\n');
             lines.forEach(line => {
                 const cleanedName = line.trim();
-                if(cleanedName && !participants.includes(cleanedName)) { participants.push(cleanedName); }
+                if(cleanedName && !participants.includes(cleanedName)) {
+                    participants.push(cleanedName);
+                }
             });
             textarea.value = '';
             updateMetricsAndUI();
@@ -442,7 +438,7 @@
                 document.getElementById('btnDraw').disabled = true;
             } else {
                 rosterContainer.innerHTML = participants.map((name, idx) => `
-                    <span class="inline-flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-2 py-0.5 text-xs text-slate-300">
+                    <span class="inline-flex items-center gap-1 bg-white/5 border border-white/10 hover:border-rose-500/40 rounded-lg px-2 py-0.5 text-xs text-slate-300">
                         ${name}
                         <button onclick="removeParticipant(${idx})" class="text-[10px] text-slate-500 hover:text-rose-400 ml-0.5 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
                     </span>
@@ -451,6 +447,7 @@
             }
         }
 
+        // SWEEPSTAKE RANDOMIZED DISPATCH MECHANIC
         function executeSweepstakeDraw() {
             if (participants.length === 0 || customTeamPool.length === 0) return;
 
@@ -458,8 +455,11 @@
             const poolSetsNeeded = Math.ceil(totalRequiredSlots / customTeamPool.length);
             
             let completeTeamPool = [];
-            for (let i = 0; i < poolSetsNeeded; i++) { completeTeamPool = completeTeamPool.concat([...customTeamPool]); }
+            for (let i = 0; i < poolSetsNeeded; i++) {
+                completeTeamPool = completeTeamPool.concat([...customTeamPool]);
+            }
 
+            // High Entropy Random Shuffling Distribution Matrix
             for (let i = completeTeamPool.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [completeTeamPool[i], completeTeamPool[j]] = [completeTeamPool[j], completeTeamPool[i]];
@@ -472,6 +472,7 @@
             participants.forEach((entrant, index) => {
                 const team1 = completeTeamPool.pop();
                 const team2 = completeTeamPool.pop();
+
                 historicalDrawResults.push({ index: index + 1, name: entrant, team1, team2 });
 
                 const tableRow = document.createElement('tr');
@@ -491,183 +492,85 @@
             document.getElementById('resultsViewport').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // EXCEL EXPORT ENGINE
         function exportToExcel() {
             if(historicalDrawResults.length === 0) return;
             const dataMatrix = [["Index", "Participant Name", "Allocated Team 1", "Allocated Team 2"]];
-            historicalDrawResults.forEach(item => { dataMatrix.push([item.index, item.name, item.team1, item.team2]); });
+
+            historicalDrawResults.forEach(item => {
+                dataMatrix.push([item.index, item.name, item.team1, item.team2]);
+            });
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(dataMatrix);
             ws['!cols'] = [{wch: 8}, {wch: 30}, {wch: 25}, {wch: 25}];
+            
             XLSX.utils.book_append_sheet(wb, ws, "Allocations");
             XLSX.writeFile(wb, `Sweepstake_Results_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
-        // ABSOLUTE ISOLATION PDF ENGINE GENERATOR (Fixed via clean sandbox document framing)
+        // SAFE, STABLE, LIGHTWEIGHT PDF RENDERING ENGINE (Bypasses OKLCH completely)
         function exportToPDF() {
             if(historicalDrawResults.length === 0) return;
             
             const btn = document.getElementById('pdfBtn');
             const btnText = document.getElementById('pdfBtnText');
+            
             btn.classList.add('animate-pulse');
-            btnText.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Printing...`;
+            btnText.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Processing...`;
 
-            const sandboxContainer = document.getElementById('iframeSandboxContainer');
-            sandboxContainer.innerHTML = ''; // clear old references
-
-            // Build isolated iframe structure
-            const iframe = document.createElement('iframe');
-            iframe.style.width = '800px';
-            iframe.style.height = '600px';
-            sandboxContainer.appendChild(iframe);
-
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            // Build structural data using classic inline hex/rgb colors to insulate canvas parser from OKLCH values
+            const cleanTarget = document.getElementById('cleanPdfTarget');
             
             let htmlRows = historicalDrawResults.map(item => `
                 <tr style="border-bottom: 1px solid #cbd5e1;">
-                    <td style="padding: 8px 10px; font-family: Arial, sans-serif; color: #475569; font-size: 11px;">${item.index}</td>
-                    <td style="padding: 8px 10px; font-family: Arial, sans-serif; font-weight: bold; color: #0f172a; font-size: 12px;">${item.name}</td>
-                    <td style="padding: 8px 10px; font-family: Arial, sans-serif; color: #0284c7; font-weight: 600; font-size: 12px;">⚽ ${item.team1}</td>
-                    <td style="padding: 8px 10px; font-family: Arial, sans-serif; color: #7c3aed; font-weight: 600; font-size: 12px;">⚽ ${item.team2}</td>
+                    <td style="padding: 8px 10px; font-family: monospace; color: #475569; font-size: 11px;">${item.index}</td>
+                    <td style="padding: 8px 10px; font-weight: bold; color: #0f172a; font-size: 12px;">${item.name}</td>
+                    <td style="padding: 8px 10px; color: #0284c7; font-weight: 600; font-size: 12px;">⚽ ${item.team1}</td>
+                    <td style="padding: 8px 10px; color: #7c3aed; font-weight: 600; font-size: 12px;">⚽ ${item.team2}</td>
                 </tr>
             `).join('');
 
-            // Write absolute style-insulated raw content bypass
-            iframeDoc.open();
-            iframeDoc.write(`
-                <html>
-                <head><title>Print Out</title></head>
-                <body style="margin:0; padding:20px; background-color:#ffffff; color:#000000; font-family:Arial,sans-serif;">
-                    <div style="border-bottom: 3px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
-                        <h2 style="margin: 0; font-size: 22px; color: #1e1b4b;">Tournament Sweepstake Allocations</h2>
-                        <h4 style="margin: 4px 0 0 0; color: #475569;">Joint Sweepstake: Jani Beauty & Eldama Technologies</h4>
-                        <p style="margin: 4px 0 0 0; font-size: 11px; color: #94a3b8;">Generated: ${new Date().toLocaleString()}</p>
+            cleanTarget.innerHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #ffffff; color: #000000;">
+                    <div style="border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
+                        <h2 style="margin: 0; font-size: 20px; color: #1e1b4b;">Tournament Sweepstake Allocations</h2>
+                        <p style="margin: 3px 0 0 0; font-size: 11px; color: #64748b; font-weight: bold;">Jani Beauty & Eldama Technologies</p>
+                        <p style="margin: 2px 0 0 0; font-size: 10px; color: #94a3b8;">Generated on: ${new Date().toLocaleString()}</p>
                     </div>
                     <table style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="background-color: #f1f5f9;">
                                 <th style="padding: 8px 10px; font-size: 11px; color: #334155; text-transform: uppercase;">#</th>
-                                <th style="padding: 8px 10px; font-size: 11px; color: #334155; text-transform: uppercase;">Contestant Name</th>
-                                <th style="padding: 8px 10px; font-size: 11px; color: #334155; text-transform: uppercase;">Allocated Team 1</th>
-                                <th style="padding: 8px 10px; font-size: 11px; color: #334155; text-transform: uppercase;">Allocated Team 2</th>
+                                <th style="padding: 8px 10px; font-size: 11px; color: #334155; text-transform: uppercase;">Contestant</th>
+                                <th style="padding: 8px 10px; font-size: 11px; color: #334155; text-transform: uppercase;">Team 1</th>
+                                <th style="padding: 8px 10px; font-size: 11px; color: #334155; text-transform: uppercase;">Team 2</th>
                             </tr>
                         </thead>
-                        <tbody>${htmlRows}</tbody>
+                        <tbody>
+                            ${htmlRows}
+                        </tbody>
                     </table>
-                </body>
-                </html>
-            `);
-            iframeDoc.close();
+                </div>
+            `;
 
             const pdfConfig = {
-                margin:       [0.4, 0.4, 0.4, 0.4],
-                filename:     `Sweepstake_Official_Draw.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
+                margin:       [0.5, 0.5, 0.5, 0.5],
+                filename:     `Sweepstake_Draw_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.95 },
                 html2canvas:  { scale: 2, useCORS: false, backgroundColor: '#ffffff', logging: false },
                 jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            // Run conversion targeted directly inside the isolated document architecture frame
-            setTimeout(() => {
-                html2pdf().set(pdfConfig).from(iframeDoc.body).save().then(() => {
-                    sandboxContainer.innerHTML = ''; 
-                    btn.classList.remove('animate-pulse');
-                    btnText.innerHTML = `<i class="fa-solid fa-file-pdf"></i> PDF`;
-                }).catch(err => {
-                    console.error(err);
-                    btn.classList.remove('animate-pulse');
-                    btnText.innerHTML = `<i class="fa-solid fa-file-pdf"></i> PDF`;
-                });
-            }, 150);
-        }
-
-        // WELL-STYLED HTML EMAIL-READY DISPATCH TRANSMITTER SYSTEM FOR N8N
-        function sendWebhookPayload() {
-            if(historicalDrawResults.length === 0) return;
-            
-            const targetUrl = document.getElementById('webhookUrlInput').value.trim();
-            if(!targetUrl) {
-                alert("Please add a valid Webhook URL Endpoint in configuration menu first.");
-                return;
-            }
-
-            const sendBtn = document.getElementById('sendWebhookBtn');
-            const sendBtnText = document.getElementById('sendWebhookBtnText');
-            
-            sendBtn.classList.add('animate-pulse');
-            sendBtn.disabled = true;
-            sendBtnText.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> Sending...`;
-
-            // Build beautifully designed responsive table element payload explicitly for downstream email clients
-            let emailTableRows = historicalDrawResults.map(item => `
-                <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 12px 16px; font-family: monospace; color: #64748b; font-size: 14px; text-align: center;">${item.index}</td>
-                    <td style="padding: 12px 16px; font-family: Arial, sans-serif; font-weight: bold; color: #1e293b; font-size: 14px;">${item.name}</td>
-                    <td style="padding: 12px 16px; font-family: Arial, sans-serif; color: #0284c7; font-weight: 600; font-size: 14px;">⚽ ${item.team1}</td>
-                    <td style="padding: 12px 16px; font-family: Arial, sans-serif; color: #7c3aed; font-weight: 600; font-size: 14px;">⚽ ${item.team2}</td>
-                </tr>
-            `).join('');
-
-            let emailPayloadHtml = `
-                <div style="background-color: #f8fafc; padding: 40px 20px; font-family: Arial, sans-serif;">
-                    <div style="max-w: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); border: 1px solid #e2e8f0;">
-                        <div style="background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%); padding: 30px 24px; text-align: center; color: #ffffff;">
-                            <h1 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">World Cup Sweepstake Results</h1>
-                            <p style="margin: 6px 0 0 0; font-size: 14px; color: rgba(255,255,255,0.85); font-weight: bold;">Jani Beauty & Eldama Technologies</p>
-                        </div>
-                        
-                        <div style="padding: 24px;">
-                            <p style="margin: 0 0 20px 0; font-size: 15px; color: #334155; line-height: 1.5;">Hi Team, the official random team assignment draw has finished executing successfully. Here are your allocations:</p>
-                            
-                            <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                                <thead>
-                                    <tr style="background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
-                                        <th style="padding: 10px 16px; font-size: 12px; color: #475569; text-transform: uppercase; font-weight: bold; text-align: center; width: 40px;">#</th>
-                                        <th style="padding: 10px 16px; font-size: 12px; color: #475569; text-transform: uppercase; font-weight: bold;">Contestant</th>
-                                        <th style="padding: 10px 16px; font-size: 12px; color: #475569; text-transform: uppercase; font-weight: bold;">Team 1</th>
-                                        <th style="padding: 10px 16px; font-size: 12px; color: #475569; text-transform: uppercase; font-weight: bold;">Team 2</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${emailTableRows}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div style="background-color: #f1f5f9; padding: 16px 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-                            This is an automated operational tournament broadcast message. Certified transparent distribution.
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Ship the JSON object package downstream over HTTP POST to n8n
-            fetch(targetUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    event: "World_Cup_Sweepstake_Draw",
-                    timestamp: new Date().toISOString(),
-                    totalParticipants: historicalDrawResults.length,
-                    resultsRaw: historicalDrawResults,
-                    resultsHtmlTable: emailPayloadHtml
-                })
-            })
-            .then(response => {
-                if(response.ok || response.status === 200) {
-                    alert("Sweepstake allocation payload sent successfully to your automation workflow!");
-                } else {
-                    alert(`Server returned status response code: ${response.status}`);
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                alert("Network error: Payload broadcast completed (Check your n8n log streams if CORS isn't explicitly configured on the endpoint).");
-            })
-            .finally(() => {
-                sendBtn.classList.remove('animate-pulse');
-                sendBtn.disabled = false;
-                sendBtnText.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Send Results`;
+            // Run conversion safely out of view
+            html2pdf().set(pdfConfig).from(cleanTarget).save().then(() => {
+                cleanTarget.innerHTML = ''; // wipe DOM tree element string
+                btn.classList.remove('animate-pulse');
+                btnText.innerHTML = `<i class="fa-solid fa-file-pdf"></i> PDF`;
+            }).catch(err => {
+                console.error("PDF engine crash bypassed safely: ", err);
+                btn.classList.remove('animate-pulse');
+                btnText.innerHTML = `<i class="fa-solid fa-file-pdf"></i> PDF`;
             });
         }
     </script>
