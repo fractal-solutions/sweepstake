@@ -455,14 +455,38 @@
             if (participants.length === 0 || customTeamPool.length === 0) return;
 
             const totalRequiredSlots = participants.length * 2;
-            const poolSetsNeeded = Math.ceil(totalRequiredSlots / customTeamPool.length);
-            
-            let completeTeamPool = [];
-            for (let i = 0; i < poolSetsNeeded; i++) { completeTeamPool = completeTeamPool.concat([...customTeamPool]); }
+            const originalTeamCount = customTeamPool.length; // This should be 48
 
-            for (let i = completeTeamPool.length - 1; i > 0; i--) {
+            let teamsForAssignment = [];
+
+            // Phase 1: Ensure all unique teams are used at least once, and shuffled
+            let shuffledUniqueTeams = [...customTeamPool];
+            for (let i = shuffledUniqueTeams.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [completeTeamPool[i], completeTeamPool[j]] = [completeTeamPool[j], completeTeamPool[i]];
+                [shuffledUniqueTeams[i], shuffledUniqueTeams[j]] = [shuffledUniqueTeams[j], shuffledUniqueTeams[i]];
+            }
+            teamsForAssignment = [...shuffledUniqueTeams]; // Add the first set of unique teams
+
+            // Phase 2: If more slots are needed, add additional teams (duplicates)
+            // These duplicates should also be shuffled to maintain randomness.
+            while (teamsForAssignment.length < totalRequiredSlots) {
+                let tempShuffledPool = [...customTeamPool];
+                for (let i = tempShuffledPool.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [tempShuffledPool[i], tempShuffledPool[j]] = [tempShuffledPool[j], tempShuffledPool[i]];
+                }
+                
+                // Add teams from this shuffled duplicate pool until we have enough slots
+                // or until this duplicate pool is exhausted.
+                for (let k = 0; k < tempShuffledPool.length && teamsForAssignment.length < totalRequiredSlots; k++) {
+                    teamsForAssignment.push(tempShuffledPool[k]);
+                }
+            }
+
+            // Final shuffle of the entire pool to ensure complete randomness across all assignments
+            for (let i = teamsForAssignment.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [teamsForAssignment[i], teamsForAssignment[j]] = [teamsForAssignment[j], teamsForAssignment[i]];
             }
 
             const tableBody = document.getElementById('resultsTableBody');
@@ -470,8 +494,9 @@
             historicalDrawResults = [];
 
             participants.forEach((entrant, index) => {
-                const team1 = completeTeamPool.pop();
-                const team2 = completeTeamPool.pop();
+                // Ensure there are enough teams to pop. This should be guaranteed by the `while` loop above.
+                const team1 = teamsForAssignment.pop();
+                const team2 = teamsForAssignment.pop();
                 historicalDrawResults.push({ index: index + 1, name: entrant, team1, team2 });
 
                 const tableRow = document.createElement('tr');
